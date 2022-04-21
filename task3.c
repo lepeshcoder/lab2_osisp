@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <limits.h>
+#include <string.h>
 
 int main(int argc, char *argv[]) {
 
@@ -11,13 +13,23 @@ int main(int argc, char *argv[]) {
 
 	char *file_name = argv[1];
 
-	char *n_str = argv[2];
-	int n = strtol(n_str, NULL, 10);
-	if (errno!=0) {
-		fprintf(stderr,"Last parameter (%s) must be int.", n_str);
-		return 1;
-	}
+	
+	char *ptr;
+    	long n = strtol(argv[2], &ptr, 10);
+    	if (n == LONG_MAX || n == LONG_MIN) {
+        perror("Big number");
+        return -1;
+    }
+    else if (n < 0) {
+        fprintf(stderr, "Number less than 0");
+        return -1;
+    }
+    else if (strcmp(argv[2], ptr) == 0 || strlen(ptr) != 0) {
+        fprintf(stderr, "Error input: Not a number");
+        return -1;
+    }
 
+	
 	FILE *file = fopen(file_name, "r");
 
 	if (file==NULL) {

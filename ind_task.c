@@ -2,23 +2,34 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#define ll long long
 
-ll from_size, to_size, from_date, to_date;
+
+long from_size, to_size, from_date, to_date;
 char src[1024];
 int srcLen;
 FILE *outFile;
 
-void loadArgInt(char *name, char *from, ll *to) {
-	*to = strtol(from, NULL, 10);
-	if (errno!=0) {
-		fprintf(stderr, "Parameter (%s) must be int.\n", name);
-		exit(1);
-	}
+int loadArgInt(char *from, long *to) {
+	char *ptr;
+    	*to = strtol(from, &ptr, 10);
+    	if (*to == LONG_MAX || *to == LONG_MIN) {
+        perror("Big number");
+        return -1;
+    	}
+    	else if (*to < 0) {
+        	fprintf(stderr, "Number less than 0");
+        	return -1;
+    	}
+    	else if (strcmp(from, ptr) == 0 || strlen(ptr) != 0) {
+        fprintf(stderr, "Error input: Not a number");
+        return -1;
+    }
+    return 0;
 }
 
 int isValidNextDest(const char *dest) {
@@ -36,11 +47,12 @@ int isDir(const struct stat *st) {
 }
 
 void printFile(const struct stat *st) {
+//printf("%s    %ld  %ld\n", src, st->st_size, st->st_ctim.tv_sec);
 	if (from_size <= st->st_size && st->st_size <= to_size
 			&& from_date <= st->st_ctim.tv_sec && st->st_ctim.tv_sec <= to_date){
 		printf("%s    %ld  %ld\n", src, st->st_size, st->st_ctim.tv_sec);
 	fprintf(outFile, "%s    %ld  %ld\n", src, st->st_size, st->st_ctim.tv_sec);
-}
+	}
 }
 
 void recMain() {
@@ -49,7 +61,8 @@ void recMain() {
 		fprintf(stderr, "File/src (%s) can't be read.\n", src);
 		return;
 	}
-	if (isDir(&st)) {
+	if (isDir(&st)) 
+	{
 		DIR *dirPtr = opendir(src);
 		if (!dirPtr) {
 			fprintf(stderr, "Can't open directory %s!\n", src);
@@ -81,7 +94,8 @@ void recMain() {
 		}
 	} else {
 		printFile(&st);
-	}
+		}
+	
 
 }
 
@@ -97,10 +111,12 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	loadArgInt("from_size", argv[3], &from_size);
-	loadArgInt("to_size", argv[4], &to_size);
-	loadArgInt("from_date", argv[5], &from_date);
-	loadArgInt("to_date", argv[6], &to_date);
+	if(loadArgInt(argv[3], &from_size) != 0 ||
+	   loadArgInt(argv[4], &to_size)   != 0 ||
+	   loadArgInt(argv[5], &from_date) != 0 ||
+	   loadArgInt(argv[6], &to_date)   != 0) 
+	   { printf("\n"); exit(-1); }
+	
 
 	strcpy(src, argv[1]);
 	srcLen = strlen(src);
