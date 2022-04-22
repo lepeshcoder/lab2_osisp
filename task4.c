@@ -29,10 +29,18 @@ int main(int argc, char *argv[]){
 		fputc(symb, file_2);
 	}
 
-	struct stat copy_stat;
-	stat(argv[1], &copy_stat);
-
-	chmod(argv[2], copy_stat.st_mode);
+	struct stat bufstat;
+	if ( stat( argv[1], &bufstat ) )
+	{
+		fputs("Cant read file stats!\n", stderr);
+		return -1;
+	}
+	
+	if ( chmod( argv[2], bufstat.st_mode ) )
+	{
+		fputs("Cant set file stats!\n", stderr);
+		return -1;
+	}
 
 	if (fclose(file_1)) {
 		fprintf(stderr,"File %s can't be written", argv[1]);
