@@ -14,22 +14,22 @@ char src[1024];
 int srcLen;
 FILE *outFile;
 
-int loadArgInt(char *from, long *to) {
-	char *ptr;
-    	*to = strtol(from, &ptr, 10);
-    	if (*to == LONG_MAX || *to == LONG_MIN) {
-        perror("Big number");
-        return -1;
-    	}
-    	else if (*to < 0) {
-        	fprintf(stderr, "Number less than 0");
-        	return -1;
-    	}
-    	else if (strcmp(from, ptr) == 0 || strlen(ptr) != 0) {
-        fprintf(stderr, "Error input: Not a number");
+long strToLong(char* str)
+{
+    char* endptr;
+    errno = 0;
+    long temp = strtol(str, &endptr, 10);
+    if (errno)
+    {
+        perror("error:");
         return -1;
     }
-    return 0;
+    if (str == endptr)
+    {
+        fprintf(stderr, "bad input");
+        return -1;
+    }
+    return temp;
 }
 
 int isValidNextDest(const char *dest) {
@@ -111,12 +111,16 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	if(loadArgInt(argv[3], &from_size) != 0 ||
-	   loadArgInt(argv[4], &to_size)   != 0 ||
-	   loadArgInt(argv[5], &from_date) != 0 ||
-	   loadArgInt(argv[6], &to_date)   != 0) 
-	   { printf("\n"); exit(-1); }
-	
+
+	from_size = strToLong(argv[3]);
+	to_size = strToLong(argv[4]);
+	from_date = strToLong(argv[5]);
+	to_date = strToLong(argv[6]);
+
+	if(from_size == -1 ||
+           to_size == -1 ||
+           from_date == -1 ||
+           to_date == -1) return -1;
 
 	strcpy(src, argv[1]);
 	srcLen = strlen(src);
