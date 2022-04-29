@@ -15,7 +15,7 @@ long strToLong(char* str)
         perror("error");
         return -1;
     }
-    if (str == endptr)
+    if (strcmp(str, endptr) == 0 || strlen(endptr) != 0)
     {
         fprintf(stderr, "bad input");
         return -1;
